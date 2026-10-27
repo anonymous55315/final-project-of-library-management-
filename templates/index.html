@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Library Management System</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #f4f4f4; color: #222; }
+    header { background: #2457a7; color: white; padding: 18px 24px; }
+    header h1 { margin: 0 0 5px; font-size: 26px; }
+    header p { margin: 0; }
+    main { max-width: 1150px; margin: 20px auto; padding: 0 15px; }
+    section { background: white; border: 1px solid #ccc; padding: 16px; margin-bottom: 18px; }
+    h2 { font-size: 20px; margin: 0 0 14px; color: #2457a7; }
+    .stats { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+    .stat { background: white; border: 1px solid #ccc; padding: 12px 16px; flex: 1; min-width: 130px; }
+    .stat strong { display: block; font-size: 23px; margin-top: 5px; }
+    .columns { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 18px; align-items: start; }
+    label { display: block; font-weight: bold; margin: 10px 0 4px; }
+    input { width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #aaa; border-radius: 3px; font: inherit; }
+    button, .btn { display: inline-block; padding: 8px 11px; border: 1px solid #2457a7; border-radius: 3px; background: #2457a7; color: white; font: inherit; text-decoration: none; cursor: pointer; }
+    .secondary { background: #eee; border-color: #aaa; color: #222; }
+    .danger { background: #b3261e; border-color: #b3261e; }
+    .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .notice { padding: 10px; background: #e3f4e5; border: 1px solid #9ac99e; margin-bottom: 15px; }
+    .notice.err { background: #fde8e7; border-color: #e4a09b; }
+    .muted, .small { color: #555; }
+    .small { font-size: 12px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 9px; border: 1px solid #ccc; vertical-align: top; }
+    th { background: #eaeaea; }
+    .issue-form { min-width: 170px; }
+    .issue-form input { margin-bottom: 5px; }
+    .search { display: flex; gap: 7px; margin-bottom: 12px; }
+    .search input { flex: 1; min-width: 100px; }
+    .empty { text-align: center; padding: 18px; color: #555; }
+    footer { color: #555; font-size: 12px; margin: 20px 0; }
+    @media (max-width: 800px) { .columns { grid-template-columns: 1fr; } }
+    @media (max-width: 480px) { header { padding: 15px; } header h1 { font-size: 22px; } .search { flex-direction: column; } }
+    @media print { body { background: white; } }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Library Management System</h1>
+  <p>Manage books, issue records and returns</p>
+</header>
+<main>
+  {% if msg %}<div class="notice {% if kind == 'err' %}err{% endif %}">{{ msg }}</div>{% endif %}
+
+  <div class="stats">
+    <div class="stat">Book titles<strong>{{ stats.titles }}</strong></div>
+    <div class="stat">Total copies<strong>{{ stats.copies }}</strong></div>
+    <div class="stat">Available copies<strong>{{ stats.available }}</strong></div>
+    <div class="stat">Currently issued<strong>{{ issued|length }}</strong></div>
+  </div>
+
+  <div class="columns">
+    <div>
+      <section>
+        <h2>Add a Book</h2>
+        <form method="post" action="/add">
+          <label>Book title *</label><input name="title" required maxlength="200" placeholder="e.g. Data Structures">
+          <label>Author *</label><input name="author" required maxlength="120" placeholder="Author name">
+          <label>ISBN</label><input name="isbn" placeholder="Optional ISBN">
+          <label>Category</label><input name="category" placeholder="e.g. Computer Science">
+          <label>Publication year</label><input name="year" type="number" min="0" max="2100" placeholder="e.g. 2024">
+          <label>Total copies *</label><input name="total" type="number" min="1" value="1" required>
+          <p><button type="submit">Add Book</button></p>
+        </form>
+      </section>
+      <section>
+        <h2>Print Issued Books List</h2>
+        <p>Print the current issued-book list with student name, roll number, phone number and issue date.</p>
+        <a class="btn" href="/print-issued" target="_blank" rel="noopener">Print Issued Books List</a>
+        <p class="small">In the print window, choose a printer or select “Save as PDF”.</p>
+      </section>
+    </div>
+
+    <div>
+      <section>
+        <h2>Book List</h2>
+        <form class="search" method="get" action="/">
+          <input name="q" value="{{ q }}" placeholder="Search title, author, ISBN or category">
+          <button type="submit">Search</button>
+          {% if q %}<a class="btn secondary" href="/">Clear</a>{% endif %}
+        </form>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Book details</th><th>Available</th><th>Issue to student</th><th>Action</th></tr></thead>
+          <tbody>
+          {% for b in books %}
+            <tr>
+              <td><strong>{{ b.title }}</strong><br>{{ b.author }}<br><span class="small">{{ b.category or 'No category' }}{% if b.isbn %} | ISBN: {{ b.isbn }}{% endif %}</span></td>
+              <td>{{ b.available }} of {{ b.total }}</td>
+              <td>
+                {% if b.available > 0 %}
+                <form class="issue-form" method="post" action="/issue/{{ b.id }}">
+                  <input name="borrower" required placeholder="Student name" aria-label="Student name">
+                  <input name="student_id" required placeholder="Student ID / roll no." aria-label="Student ID">
+                  <input name="phone" required type="tel" placeholder="Phone number" aria-label="Phone number">
+                  <div class="actions"><button type="submit">Issue Book</button><button class="secondary" type="submit" name="print" value="1">Issue & Print Slip</button></div>
+                </form>
+                {% else %}<span class="muted">Not available</span>{% endif %}
+              </td>
+              <td><form method="post" action="/delete/{{ b.id }}" onsubmit="return confirm('Delete this book and its past issue history?');"><button class="danger" type="submit">Delete</button></form></td>
+            </tr>
+          {% else %}<tr><td colspan="4" class="empty">No books found. Add a book or change your search.</td></tr>{% endfor %}
+          </tbody>
+        </table></div>
+      </section>
+
+      <section>
+        <div class="actions" style="justify-content:space-between"><h2>Currently Issued Books</h2><a class="btn" href="/print-issued" target="_blank" rel="noopener">Print List</a></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Book</th><th>Student details</th><th>Issue date</th><th>Action</th></tr></thead>
+          <tbody>
+          {% for i in issued %}
+            <tr>
+              <td>{{ i.title }}</td>
+              <td>{{ i.borrower }}<br>Roll No.: {{ i.student_id or '—' }}<br>Phone: {{ i.phone or '—' }}</td>
+              <td>{{ i.issued_on }}</td>
+              <td><form method="post" action="/return/{{ i.id }}" onsubmit="return confirm('Mark this book as returned?');"><button type="submit">Return Book</button></form><p class="small"><a href="/print/{{ i.id }}" target="_blank" rel="noopener">Print individual slip</a></p></td>
+            </tr>
+          {% else %}<tr><td colspan="4" class="empty">No books are currently issued.</td></tr>{% endfor %}
+          </tbody>
+        </table></div>
+      </section>
+    </div>
+  </div>
+  <footer>Library Management System | Python, FastAPI, SQLite and HTML/CSS</footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Currently Issued Books Report</title>
+<style>
+*{box-sizing:border-box}body{font:13px/1.45 Arial,sans-serif;color:#111;margin:24px}.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:20px}.toolbar button{padding:9px 15px;border:0;background:#1d4ed8;color:#fff;border-radius:5px;font-weight:bold;cursor:pointer}.toolbar a{color:#1d4ed8}.heading{text-align:center;border-bottom:2px solid #222;padding-bottom:12px;margin-bottom:18px}.heading h1{font-size:22px;margin:0 0 5px}.heading p{margin:0}.meta{display:flex;justify-content:space-between;margin:12px 0}table{width:100%;border-collapse:collapse}th,td{border:1px solid #555;padding:8px;text-align:left;vertical-align:top}th{background:#eee}tbody tr:nth-child(even){background:#fafafa}.empty{text-align:center;padding:22px}.signature{display:flex;justify-content:space-between;margin-top:55px}.signature span{border-top:1px solid #333;padding-top:7px;min-width:180px;text-align:center}.foot{margin-top:18px;font-size:11px;color:#444}@page{size:A4 landscape;margin:12mm}@media print{body{margin:0}.no-print{display:none!important}thead{display:table-header-group}tr{break-inside:avoid}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style></head><body>
+<div class="toolbar no-print"><button onclick="window.print()">🖨 Print / Save as PDF</button><a href="/">← Back to dashboard</a></div>
+<div class="heading"><h1>LIBRARY MANAGEMENT SYSTEM</h1><p>Currently Issued Books & Student Details Report</p></div>
+<div class="meta"><span><strong>Report date:</strong> {{ now_date }}</span><span><strong>Total active issues:</strong> {{ issued|length }}</span></div>
+<table><thead><tr><th>Sr. No.</th><th>Issue ID</th><th>Book Title</th><th>Student Name</th><th>Student ID / Roll No.</th><th>Phone Number</th><th>Issue Date</th></tr></thead><tbody>
+{% for i in issued %}<tr><td>{{ loop.index }}</td><td>{{ i.id }}</td><td>{{ i.title }}</td><td>{{ i.borrower }}</td><td>{{ i.student_id or '—' }}</td><td>{{ i.phone or '—' }}</td><td>{{ i.issued_on }}</td></tr>{% else %}<tr><td colspan="7" class="empty">No books are currently issued.</td></tr>{% endfor %}
+</tbody></table>
+<div class="signature"><span>Librarian Signature</span><span>Authorized Signature</span></div><p class="foot">Confidential library record. Handle student contact information responsibly.</p>
+{% if auto %}<script>window.addEventListener('load',()=>window.print());</script>{% endif %}
+</body></html>
