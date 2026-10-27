@@ -7,7 +7,10 @@ from datetime import date
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
-DB_PATH = os.environ.get("DB_PATH", str(BASE_DIR / "library.db"))
+DB_PATH = os.environ.get(
+    "DB_PATH",
+    "/tmp/library.db" if os.environ.get("VERCEL") else str(BASE_DIR / "library.db")
+)
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS books (
