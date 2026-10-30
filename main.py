@@ -1,4 +1,5 @@
 """FastAPI web app for the Library Management System."""
+
 from contextlib import asynccontextmanager
 from datetime import date
 from urllib.parse import quote
@@ -6,6 +7,7 @@ from urllib.parse import quote
 from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 
 import library as lib
 
@@ -17,6 +19,13 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Library Management System", lifespan=lifespan)
+
+app.mount(
+    "/static",
+    StaticFiles(directory=str(lib.BASE_DIR / "static")),
+    name="static"
+)
+
 templates = Jinja2Templates(directory=str(lib.BASE_DIR / "templates"))
 
 
